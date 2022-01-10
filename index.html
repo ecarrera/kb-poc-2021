@@ -1,87 +1,50 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity WebGL Player | Kuroro Beasts</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-  </head>
-  <body>
-    <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width=960 height=600></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
-        <div id="unity-progress-bar-empty">
-          <div id="unity-progress-bar-full"></div>
-        </div>
-      </div>
-      <div id="unity-mobile-warning">
-        WebGL builds are not supported on mobile devices.
-      </div>
-      <div id="unity-footer">
-        <div id="unity-webgl-logo"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">Kuroro Beasts</div>
-      </div>
-    </div>
-    <script>
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/unity-poc.loader.js";
-      var config = {
-        dataUrl: buildUrl + "/unity-poc.data.br",
-        frameworkUrl: buildUrl + "/unity-poc.framework.js.br",
-        codeUrl: buildUrl + "/unity-poc.wasm.br",
-        streamingAssetsUrl: "StreamingAssets",
-        companyName: "DefaultCompany",
-        productName: "Kuroro Beasts",
-        productVersion: "1.0",
-      };
 
-      var container = document.querySelector("#unity-container");
-      var canvas = document.querySelector("#unity-canvas");
-      var loadingBar = document.querySelector("#unity-loading-bar");
-      var progressBarFull = document.querySelector("#unity-progress-bar-full");
-      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
-      var mobileWarning = document.querySelector("#unity-mobile-warning");
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+  <title>Unity WebGL Player | Kuroro Beasts</title>
+</head>
 
-      // By default Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
+<body class="d-flex flex-column align-items-center">
+  <canvas id="unity-canvas" width=1366 height=768 style="width: 1366px; height: 768px; background: #231F20"></canvas>
+  <div class="d-flex flex-column align-items-center bg-light p-4 mt-4">
+    <button id="interact-js" class="btn btn-info mb-4 text-white">Interact from Javascript</button>
+    <small>This button executes
+      <pre class="mb-0 lh-1">
+      <code class="mb-0 lh-1">
+        unityInstance.SendMessage('Character', 'ShowTalkingUi');
+      </code>
+    </pre>
+      You can test it while interacting with the NPCs.
+    </small>
+  </div>
+  <div id="update-from-unity" class="alert alert-success mt-4">Loading...
+  </div>
+  <script src="Build/unity-poc.loader.js"></script>
+  <script>
+    var gameInstance = createUnityInstance(document.querySelector("#unity-canvas"), {
+      dataUrl: "Build/unity-poc.data",
+      frameworkUrl: "Build/unity-poc.framework.js",
+      codeUrl: "Build/unity-poc.wasm",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "DefaultCompany",
+      productName: "Kuroro Beasts",
+      productVersion: "1.0",
+      // matchWebGLToCanvasSize: false, // Uncomment this to separately control WebGL canvas render size and DOM element size.
+      // devicePixelRatio: 1, // Uncomment this to override low DPI rendering on high DPI displays.
+    });
 
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        container.className = "unity-mobile";
-        // Avoid draining fillrate performance on mobile devices,
-        // and default/override low DPI mode on mobile browsers.
-        config.devicePixelRatio = 1;
-        mobileWarning.style.display = "block";
-        setTimeout(() => {
-          mobileWarning.style.display = "none";
-        }, 5000);
-      } else {
-        canvas.style.width = "960px";
-        canvas.style.height = "600px";
-      }
-      loadingBar.style.display = "block";
+    gameInstance.then((unityInstance) => {
+      document.getElementById("interact-js").addEventListener("click", function () {
+        console.log("Calling function from js to unity");
+        unityInstance.SendMessage('Character', 'ShowTalkingUi');
+      })
+    })
+  </script>
+</body>
 
-      var script = document.createElement("script");
-      script.src = loaderUrl;
-      script.onload = () => {
-        createUnityInstance(canvas, config, (progress) => {
-          progressBarFull.style.width = 100 * progress + "%";
-        }).then((unityInstance) => {
-          loadingBar.style.display = "none";
-          fullscreenButton.onclick = () => {
-            unityInstance.SetFullscreen(1);
-          };
-        }).catch((message) => {
-          alert(message);
-        });
-      };
-      document.body.appendChild(script);
-    </script>
-  </body>
 </html>
